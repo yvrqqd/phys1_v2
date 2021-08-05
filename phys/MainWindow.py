@@ -172,14 +172,14 @@ class MainWindow(Gtk.Window):
         thread.daemon = True
         thread.start()
 
-    def on_drawing_area_draw(self, widget, cr):
+    def on_drawing_area_draw(cls, widget, cr):
         global dimg
         mutex.acquire()
         Gdk.cairo_set_source_pixbuf(cr, dimg, 10, 0)
         cr.paint()
         mutex.release()
 
-    def on_drawing_area2_draw(self, widget, cr):
+    def on_drawing_area2_draw(cls, widget, cr):
         global dimg2
         mutex.acquire()
         Gdk.cairo_set_source_pixbuf(cr, dimg2, 10, 0)

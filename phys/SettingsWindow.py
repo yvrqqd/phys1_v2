@@ -14,7 +14,7 @@ class SettingsWindow:
 
     def __init__(self):
         builder = Gtk.Builder()
-        builder.add_from_file("SettingsWindow.glade")
+        builder.add_from_file("/UI/SettingsWindow.glade")
         builder.connect_signals(self)
 
         self.settings_window = builder.get_object("settings_window")
