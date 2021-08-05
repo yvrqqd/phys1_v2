@@ -13,7 +13,7 @@ class SettingsWindow:
 
     def __init__(self):
         builder = Gtk.Builder()
-        builder.add_from_file("/UI/SettingsWindow.glade")
+        builder.add_from_file("UI/SettingsWindow.glade")
         builder.connect_signals(self)
 
         self.settings_window = builder.get_object("settings_window")
@@ -24,6 +24,10 @@ class SettingsWindow:
         self.list_of_available_cameras = builder.get_object("list_available")
         self.list_of_working_cameras = builder.get_object("list_working")
 
+
+        self.mask_editor_area = builder.get_object("mask_editor")
+        self.img = GdkPixbuf.Pixbuf.new_from_file("start.png")
+        self.mask_editor_area.queue_draw()
         self.load_settings()
         self.settings_window.show_all()
 
@@ -87,3 +91,13 @@ class SettingsWindow:
 
         self.spin_button.set_value(int(config["video_camera"]["video_camera_index"]))
         self.file_chooser_button.set_filename(config["video_file"]["video_file_name"])
+
+    def on_mask_editor_area_draw(self, widget, cr):
+        Gdk.cairo_set_source_pixbuf(cr, self.img, 0, 0)
+        cr.paint()
+
+    def on_mask_editor_area_pressed(self, event):
+        print(event.x, event.y)
+
+    def on_mask_editor_area_released(self, event):
+        print(event.x, event.y)

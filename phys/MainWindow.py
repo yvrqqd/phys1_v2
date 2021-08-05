@@ -175,13 +175,13 @@ class MainWindow(Gtk.Window):
     def on_drawing_area_draw(cls, widget, cr):
         global dimg
         mutex.acquire()
-        Gdk.cairo_set_source_pixbuf(cr, dimg, 10, 0)
+        Gdk.cairo_set_source_pixbuf(cr, dimg, 0, 0)
         cr.paint()
         mutex.release()
 
     def on_drawing_area2_draw(cls, widget, cr):
         global dimg2
         mutex.acquire()
-        Gdk.cairo_set_source_pixbuf(cr, dimg2, 10, 0)
+        Gdk.cairo_set_source_pixbuf(cr, dimg2, 0, 0)
         cr.paint()
         mutex.release()
