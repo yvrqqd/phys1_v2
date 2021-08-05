@@ -4,7 +4,6 @@ import configparser
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject, Gdk, GdkPixbuf, Gio
-from phys import CustomHeaderbar, InfoWindow, MainWindow
 
 
 class SettingsWindow:

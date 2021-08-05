@@ -3,9 +3,20 @@ import time
 import threading
 import gi
 import configparser
+from functools import wraps
+
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject, Gdk, GdkPixbuf, Gio
 from phys import InfoWindow, SettingsWindow, MainWindow
+
+
+def parity_checker(function):
+    @wraps(function)
+    def change_parity(*args, **kwargs):
+        change_parity.parity = (1, 0)[change_parity.parity]
+        return function(*args, **kwargs)
+    change_parity.parity = 0
+    return change_parity
 
 
 class CustomHeaderBar(Gtk.HeaderBar):
@@ -37,11 +48,19 @@ class CustomHeaderBar(Gtk.HeaderBar):
         self.info_button.connect("clicked", self.open_info)
         self.button_box.pack_end(self.info_button, False, False, 0)
 
+
+
     def open_info(self, *args):
         win = InfoWindow.InfoWindow()
 
+
+    @parity_checker
     def start_videostream(self, *args):
-        self.window.video_open(self.window)
+        if self.start_videostream.parity:
+            self.window.video_open(self.window)
+        else:
+            print("pause")
+
 
     def open_settings(self, *args):
         win = SettingsWindow.SettingsWindow()
