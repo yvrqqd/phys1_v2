@@ -8,9 +8,6 @@ import cairo
 
 
 class SettingsWindow:
-    """
-    ...
-    """
 
     def __init__(self):
         builder = Gtk.Builder()
