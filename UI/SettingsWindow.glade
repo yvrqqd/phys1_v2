@@ -591,6 +591,7 @@
             <signal name="button-press-event" handler="on_mask_editor_area_pressed" swapped="no"/>
             <signal name="button-release-event" handler="on_mask_editor_area_released" swapped="no"/>
             <signal name="draw" handler="on_mask_editor_area_draw" swapped="no"/>
+            <signal name="motion-notify-event" handler="on_mask_editor_motion_notify_event" swapped="no"/>
           </object>
           <packing>
             <property name="left_attach">0</property>
