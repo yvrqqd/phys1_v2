@@ -167,7 +167,7 @@ class MainWindow(Gtk.Window):
         # print(m3)
         # print(m4)
 
-    def video_open(self, *args):
+    def video_open(self, *_):
         thread = threading.Thread(target=self.open_video_opencv)
         thread.daemon = True
         thread.start()
