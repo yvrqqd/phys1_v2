@@ -2,6 +2,7 @@ import cv2
 import gi
 import configparser
 from functools import wraps
+
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject, Gdk, GdkPixbuf, Gio
 import cairo
@@ -120,11 +121,17 @@ class SettingsWindow:
 
     def on_mask_editor_area_draw(self, widget, cr, *_):
         size_x = min(
-            max(int(-self.coords[0][0]), int(self.coords[1][0] - self.coords[0][0])),
+            max(
+                int(-self.coords[0][0]),
+                int(self.coords[1][0] - self.coords[0][0])
+            ),
             720 - int(self.coords[0][0])
         )
         size_y = min(
-            max(int(-self.coords[0][1]), int(self.coords[1][1] - self.coords[0][1])),
+            max(
+                int(-self.coords[0][1]),
+                int(self.coords[1][1] - self.coords[0][1])
+            ),
             576 - int(self.coords[0][1])
         )
 
@@ -148,4 +155,3 @@ class SettingsWindow:
     def on_mask_editor_motion_notify_event(self, widget, event):
         self.coords[1] = [event.x, event.y]
         self.mask_editor_area.queue_draw()
-
