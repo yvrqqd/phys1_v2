@@ -233,13 +233,17 @@
           </packing>
         </child>
         <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
+          <object class="GtkButton" id="mask_accept_button">
+            <property name="label" translatable="yes">Принять изменения в маске</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">4</property>
+            <property name="top_attach">6</property>
+            <property name="width">3</property>
+          </packing>
         </child>
         <child>
           <placeholder/>

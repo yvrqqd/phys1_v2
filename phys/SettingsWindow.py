@@ -1,6 +1,7 @@
 import cv2
 import gi
 import configparser
+import json
 from functools import wraps
 
 gi.require_version('Gtk', '3.0')
@@ -26,7 +27,9 @@ class SettingsWindow:
         self.toggle_btn_move_mask = builder.get_object("toggle_btn_move_mask")
         self.toggle_btn_set_0 = builder.get_object("toggle_btn_set0")
         self.toggle_btn_set_1 = builder.get_object("toggle_btn_set1")
+        self.mask_accept_button = builder.get_object("mask_accept_button")
 
+        self.mask_accept_button.connect("released", self.on_mask_accept_button_released)
         self.toggle_btn_move_mask.connect("toggled", self.on_toggled, 1)
         self.toggle_btn_set_1.connect("toggled", self.on_toggled, 2)
         self.toggle_btn_set_0.connect("toggled", self.on_toggled, 3)
@@ -46,6 +49,16 @@ class SettingsWindow:
         self.mask_editor_area.queue_draw()
         self.load_settings()
         self.settings_window.show_all()
+        self.mass = [[]]
+        self.load_mask_data()
+
+    def load_mask_data(self):
+        try:
+            with open("mask_data.json", 'r') as file:
+                for line in file:
+                    pass
+        except FileNotFoundError as e:
+            print("error while loading mask data: {}".format(e))
 
     def on_toggled(self, obj, type_number):
         if type_number == 1 and self.toggle_btn_move_mask.get_active():
@@ -142,6 +155,7 @@ class SettingsWindow:
             cr.set_source_rgba(0.0, 0.9, 0.9, 0.8)
             cr.rectangle(pos_x, pos_y, size_x, size_y)
             cr.stroke()
+            self.mass[0] = [pos_x, pos_y]
         elif self.toggle_btn_set_1.get_active():
             size_x = min(
                 max(
@@ -178,7 +192,13 @@ class SettingsWindow:
         if event.type == Gdk.EventType.BUTTON_RELEASE and event.button == 1:
             self.coords[1] = [event.x, event.y]
             self.mask_editor_area.queue_draw()
+            if self.toggle_btn_set_1.get_active():
+                self.mass.append(self.coords)
 
     def on_mask_editor_motion_notify_event(self, widget, event):
         self.coords[1] = [event.x, event.y]
         self.mask_editor_area.queue_draw()
+
+    def on_mask_accept_button_released(self, *_):
+        with open("mask_data.json", 'w') as file:
+            json.dump(self.mass, file)
