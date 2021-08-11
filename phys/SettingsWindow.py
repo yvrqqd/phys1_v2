@@ -120,32 +120,59 @@ class SettingsWindow:
         self.file_chooser_button.set_filename(config["video_file"]["video_file_name"])
 
     def on_mask_editor_area_draw(self, widget, cr, *_):
-        size_x = min(
-            max(
-                int(-self.coords[0][0]),
-                int(self.coords[1][0] - self.coords[0][0])
-            ),
-            720 - int(self.coords[0][0])
-        )
-        size_y = min(
-            max(
-                int(-self.coords[0][1]),
-                int(self.coords[1][1] - self.coords[0][1])
-            ),
-            576 - int(self.coords[0][1])
-        )
+        Gdk.cairo_set_source_pixbuf(cr, self.img, 0, 0)
+        cr.paint()
+        if self.toggle_btn_move_mask.get_active():
+            pos_x = min(
+                max(
+                    0,
+                    int(self.coords[1][0] - 256)
+                ),
+                208
+            )
+            pos_y = min(
+                max(
+                    0,
+                    int(self.coords[1][1] - 256)
+                ),
+                64
+            )
+            size_x = 512
+            size_y = 512
+            cr.set_source_rgba(0.0, 0.9, 0.9, 0.8)
+            cr.rectangle(pos_x, pos_y, size_x, size_y)
+            cr.stroke()
+        elif self.toggle_btn_set_1.get_active():
+            size_x = min(
+                max(
+                    int(-self.coords[0][0]),
+                    int(self.coords[1][0] - self.coords[0][0])
+                ),
+                720 - int(self.coords[0][0])
 
-        cr.set_source_rgba(0.0, 0.3, 0.7, 0.4)
-        cr.rectangle(int(self.coords[0][0]) + 1, int(self.coords[0][1]) + 1, size_x - 1, size_y - 1)
-        cr.fill()
+            )
+            size_y = min(
+                max(
+                    int(-self.coords[0][1]),
+                    int(self.coords[1][1] - self.coords[0][1])
+                ),
+                576 - int(self.coords[0][1])
+            )
 
-        cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
-        cr.rectangle(int(self.coords[0][0]), int(self.coords[0][1]), size_x, size_y)
-        cr.stroke()
+            cr.set_source_rgba(0.0, 0.3, 0.7, 0.4)
+            cr.rectangle(int(self.coords[0][0]) + 1, int(self.coords[0][1]) + 1, size_x - 1, size_y - 1)
+            cr.fill()
+
+            cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
+            cr.rectangle(int(self.coords[0][0]), int(self.coords[0][1]), size_x, size_y)
+            cr.stroke()
+        elif self.toggle_btn_set_0.get_active():
+            print(2)
 
     def on_mask_editor_area_pressed(self, widget, event):
         if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 1:  # 1 == left mouse button
             self.coords[0] = [event.x, event.y]
+            self.coords[1] = [event.x, event.y]
 
     def on_mask_editor_area_released(self, widget, event):
         if event.type == Gdk.EventType.BUTTON_RELEASE and event.button == 1:
