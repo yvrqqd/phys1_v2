@@ -155,7 +155,7 @@ class SettingsWindow:
             cr.rectangle(pos_x, pos_y, size_x, size_y)
             cr.stroke()
             for rec in self.mass[1:]:
-                cr.rectangle(rec[0],rec[1],rec[2],rec[3])
+                cr.rectangle(rec[0], rec[1], rec[2], rec[3])
                 cr.fill()
         elif self.toggle_btn_set_0.get_active():
             size_x = min(
@@ -181,6 +181,14 @@ class SettingsWindow:
             cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
             cr.rectangle(int(self.coords[0][0]), int(self.coords[0][1]), size_x, size_y)
             cr.stroke()
+            for rec in self.mass[1:]:
+                cr.rectangle(rec[0], rec[1], rec[2], rec[3])
+                cr.fill()
+        else:
+            cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
+            for rec in self.mass[1:]:
+                cr.rectangle(rec[0], rec[1], rec[2], rec[3])
+                cr.fill()
 
     def on_mask_editor_area_pressed(self, widget, event):
         if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 1:  # 1 == left mouse button
@@ -210,18 +218,6 @@ class SettingsWindow:
 
     def on_mask_editor_motion_notify_event(self, widget, event):
         self.coords[1] = [event.x, event.y]
-
-        if self.toggle_btn_move_mask.get_active():
-            pos_x = min(max(0, int(self.coords[1][0] - 256)), 208)
-            pos_y = min(max(0, int(self.coords[1][1] - 256)), 64)
-            self.mass[0] = [pos_x, pos_y]
-        elif self.toggle_btn_set_0.get_active():
-            size_x = min(max(int(-self.coords[0][0]), int(self.coords[1][0] - self.coords[0][0])),
-                         720 - int(self.coords[0][0]))
-            size_y = min(max(int(-self.coords[0][1]), int(self.coords[1][1] - self.coords[0][1])),
-                         576 - int(self.coords[0][1]))
-            self.mass.append([int(self.coords[0][0]), int(self.coords[0][1]), size_x, size_y])
-
         self.mask_editor_area.queue_draw()
 
     def on_mask_accept_button_released(self, *_):
