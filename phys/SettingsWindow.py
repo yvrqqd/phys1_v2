@@ -56,8 +56,13 @@ class SettingsWindow:
         try:
             with open("mask_data.json", 'r') as file:
                 self.mass = json.load(file)
+                self.mask_editor_area.queue_draw()
         except FileNotFoundError as e:
             print("error while loading mask data: {}".format(e))
+
+    def on_mask_accept_button_released(self, *_):
+        with open("mask_data.json", 'w') as file:
+            json.dump(self.mass, file)
 
     def on_toggled(self, obj, type_number):
         if type_number == 1 and self.toggle_btn_move_mask.get_active():
@@ -135,24 +140,8 @@ class SettingsWindow:
         Gdk.cairo_set_source_pixbuf(cr, self.img, 0, 0)
         cr.paint()
         if self.toggle_btn_move_mask.get_active():
-            pos_x = min(
-                max(
-                    0,
-                    int(self.coords[1][0] - 256)
-                ),
-                208
-            )
-            pos_y = min(
-                max(
-                    0,
-                    int(self.coords[1][1] - 256)
-                ),
-                64
-            )
-            size_x = 512
-            size_y = 512
             cr.set_source_rgba(0.0, 0.9, 0.9, 0.8)
-            cr.rectangle(pos_x, pos_y, size_x, size_y)
+            cr.rectangle(self.mass[0][0], self.mass[0][1], 512, 512)
             cr.stroke()
             for rec in self.mass[1:]:
                 cr.rectangle(rec[0], rec[1], rec[2], rec[3])
@@ -181,10 +170,20 @@ class SettingsWindow:
             cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
             cr.rectangle(int(self.coords[0][0]), int(self.coords[0][1]), size_x, size_y)
             cr.stroke()
+
+            cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
+            cr.rectangle(self.mass[0][0], self.mass[0][1], 512, 512)
+            cr.stroke()
+
+            cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
             for rec in self.mass[1:]:
                 cr.rectangle(rec[0], rec[1], rec[2], rec[3])
                 cr.fill()
         else:
+            cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
+            cr.rectangle(self.mass[0][0], self.mass[0][1], 512, 512)
+            cr.stroke()
+
             cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
             for rec in self.mass[1:]:
                 cr.rectangle(rec[0], rec[1], rec[2], rec[3])
@@ -218,8 +217,10 @@ class SettingsWindow:
 
     def on_mask_editor_motion_notify_event(self, widget, event):
         self.coords[1] = [event.x, event.y]
-        self.mask_editor_area.queue_draw()
 
-    def on_mask_accept_button_released(self, *_):
-        with open("mask_data.json", 'w') as file:
-            json.dump(self.mass, file)
+        if self.toggle_btn_move_mask.get_active():
+            pos_x = min(max(0, int(self.coords[1][0] - 256)), 208)
+            pos_y = min(max(0, int(self.coords[1][1] - 256)), 64)
+            self.mass[0] = [pos_x, pos_y]
+
+        self.mask_editor_area.queue_draw()
