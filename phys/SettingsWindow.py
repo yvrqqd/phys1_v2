@@ -26,13 +26,13 @@ class SettingsWindow:
         self.mask_editor_area = builder.get_object("mask_editor")
         self.toggle_btn_move_mask = builder.get_object("toggle_btn_move_mask")
         self.toggle_btn_set_0 = builder.get_object("toggle_btn_set0")
-        self.toggle_btn_set_1 = builder.get_object("toggle_btn_set1")
+        self.toggle_btn_del_mask = builder.get_object("toggle_btn_del_mask")
         self.mask_accept_button = builder.get_object("mask_accept_button")
 
         self.mask_accept_button.connect("released", self.on_mask_accept_button_released)
         self.toggle_btn_move_mask.connect("toggled", self.on_toggled, 1)
-        self.toggle_btn_set_1.connect("toggled", self.on_toggled, 2)
-        self.toggle_btn_set_0.connect("toggled", self.on_toggled, 3)
+        self.toggle_btn_set_0.connect("toggled", self.on_toggled, 2)
+        self.toggle_btn_del_mask.connect("toggled", self.on_toggled, 3)
         self.toggle_btn_move_mask.set_active(True)
 
         self.mask_editor_area.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
@@ -55,21 +55,20 @@ class SettingsWindow:
     def load_mask_data(self):
         try:
             with open("mask_data.json", 'r') as file:
-                for line in file:
-                    pass
+                self.mass = json.load(file)
         except FileNotFoundError as e:
             print("error while loading mask data: {}".format(e))
 
     def on_toggled(self, obj, type_number):
         if type_number == 1 and self.toggle_btn_move_mask.get_active():
+            self.toggle_btn_del_mask.set_active(False)
             self.toggle_btn_set_0.set_active(False)
-            self.toggle_btn_set_1.set_active(False)
-        elif type_number == 2 and self.toggle_btn_set_1.get_active():
+        elif type_number == 2 and self.toggle_btn_set_0.get_active():
+            self.toggle_btn_move_mask.set_active(False)
+            self.toggle_btn_del_mask.set_active(False)
+        elif type_number == 3 and self.toggle_btn_del_mask.get_active():
             self.toggle_btn_move_mask.set_active(False)
             self.toggle_btn_set_0.set_active(False)
-        elif type_number == 3 and self.toggle_btn_set_0.get_active():
-            self.toggle_btn_move_mask.set_active(False)
-            self.toggle_btn_set_1.set_active(False)
 
     def on_refresh_list_of_available_cameras(self, *_):
         is_working = True
@@ -155,8 +154,10 @@ class SettingsWindow:
             cr.set_source_rgba(0.0, 0.9, 0.9, 0.8)
             cr.rectangle(pos_x, pos_y, size_x, size_y)
             cr.stroke()
-            self.mass[0] = [pos_x, pos_y]
-        elif self.toggle_btn_set_1.get_active():
+            for rec in self.mass[1:]:
+                cr.rectangle(rec[0],rec[1],rec[2],rec[3])
+                cr.fill()
+        elif self.toggle_btn_set_0.get_active():
             size_x = min(
                 max(
                     int(-self.coords[0][0]),
@@ -180,8 +181,6 @@ class SettingsWindow:
             cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
             cr.rectangle(int(self.coords[0][0]), int(self.coords[0][1]), size_x, size_y)
             cr.stroke()
-        elif self.toggle_btn_set_0.get_active():
-            print(2)
 
     def on_mask_editor_area_pressed(self, widget, event):
         if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 1:  # 1 == left mouse button
@@ -191,12 +190,38 @@ class SettingsWindow:
     def on_mask_editor_area_released(self, widget, event):
         if event.type == Gdk.EventType.BUTTON_RELEASE and event.button == 1:
             self.coords[1] = [event.x, event.y]
-            self.mask_editor_area.queue_draw()
-            if self.toggle_btn_set_1.get_active():
-                self.mass.append(self.coords)
+
+            if self.toggle_btn_move_mask.get_active():
+                pos_x = min(max(0, int(self.coords[1][0] - 256)), 208)
+                pos_y = min(max(0, int(self.coords[1][1] - 256)), 64)
+                self.mass[0] = [pos_x, pos_y]
+            elif self.toggle_btn_set_0.get_active():
+                size_x = min(max(int(-self.coords[0][0]), int(self.coords[1][0] - self.coords[0][0])),
+                             720 - int(self.coords[0][0]))
+                size_y = min(max(int(-self.coords[0][1]), int(self.coords[1][1] - self.coords[0][1])),
+                             576 - int(self.coords[0][1]))
+                self.mass.append([int(self.coords[0][0]), int(self.coords[0][1]), size_x, size_y])
+            else:
+                for rec in self.mass[1:]:
+                    if max(rec[0], rec[0] + rec[2]) >= event.x >= min(rec[0], rec[0] + rec[2]) and \
+                            max(rec[1], rec[1] + rec[3]) >= event.y >= min(rec[1], rec[1] + rec[3]):
+                        self.mass.remove(rec)
+        self.mask_editor_area.queue_draw()
 
     def on_mask_editor_motion_notify_event(self, widget, event):
         self.coords[1] = [event.x, event.y]
+
+        if self.toggle_btn_move_mask.get_active():
+            pos_x = min(max(0, int(self.coords[1][0] - 256)), 208)
+            pos_y = min(max(0, int(self.coords[1][1] - 256)), 64)
+            self.mass[0] = [pos_x, pos_y]
+        elif self.toggle_btn_set_0.get_active():
+            size_x = min(max(int(-self.coords[0][0]), int(self.coords[1][0] - self.coords[0][0])),
+                         720 - int(self.coords[0][0]))
+            size_y = min(max(int(-self.coords[0][1]), int(self.coords[1][1] - self.coords[0][1])),
+                         576 - int(self.coords[0][1]))
+            self.mass.append([int(self.coords[0][0]), int(self.coords[0][1]), size_x, size_y])
+
         self.mask_editor_area.queue_draw()
 
     def on_mask_accept_button_released(self, *_):

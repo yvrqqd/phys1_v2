@@ -197,7 +197,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkToggleButton" id="toggle_btn_set1">
+          <object class="GtkToggleButton" id="toggle_btn_set0">
             <property name="label" translatable="yes">Добавление маски</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
@@ -209,7 +209,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkToggleButton" id="toggle_btn_set0">
+          <object class="GtkToggleButton" id="toggle_btn_del_mask">
             <property name="label" translatable="yes">Удаление маски</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
