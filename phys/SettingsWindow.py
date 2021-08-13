@@ -1,8 +1,12 @@
+import time
+
 import cv2
 import gi
 import configparser
-import json
+import json, sys
+import numpy as np
 from functools import wraps
+from memory_profiler import profile
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject, Gdk, GdkPixbuf, Gio
@@ -10,7 +14,6 @@ import cairo
 
 
 class SettingsWindow:
-
     def __init__(self):
         builder = Gtk.Builder()
         builder.add_from_file("UI/SettingsWindow.glade")
@@ -56,11 +59,30 @@ class SettingsWindow:
         try:
             with open("mask_data.json", 'r') as file:
                 self.mass = json.load(file)
-                self.mask_editor_area.queue_draw()
         except FileNotFoundError as e:
             print("error while loading mask data: {}".format(e))
 
     def on_mask_accept_button_released(self, *_):
+        border = self.mass[0]
+
+        def is_masked(row, col):
+            for rec in self.mass[1:]:
+                if max(rec[0], rec[0] + rec[2]) >= border[0] + row >= min(rec[0], rec[0] + rec[2]) and \
+                        max(rec[1], rec[1] + rec[3]) >= border[1] + col >= min(rec[1], rec[1] + rec[3]):
+                    return 1
+            return 0
+
+        mask = np.ones([512, 512], dtype="uint8")
+        for x in range(0, 512):
+            for y in range(0, 512):
+                if is_masked(x, y):
+                    mask[x][y] = 0
+
+        mask = np.packbits(mask, axis=0)
+        with open("mask", "wb") as file:
+            for byte in mask:
+                file.write(byte)
+
         with open("mask_data.json", 'w') as file:
             json.dump(self.mass, file)
 
@@ -163,28 +185,27 @@ class SettingsWindow:
                 576 - int(self.coords[0][1])
             )
 
-            cr.set_source_rgba(0.0, 0.3, 0.7, 0.4)
+            cr.set_source_rgba(0.0, 0.9, 0.9, 0.8)
             cr.rectangle(int(self.coords[0][0]) + 1, int(self.coords[0][1]) + 1, size_x - 1, size_y - 1)
             cr.fill()
 
-            cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
+            cr.set_source_rgba(0.0, 0.9, 0.9, 0.8)
             cr.rectangle(int(self.coords[0][0]), int(self.coords[0][1]), size_x, size_y)
             cr.stroke()
 
-            cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
+            cr.set_source_rgba(0.2, 0.7, 0.9, 0.5)
             cr.rectangle(self.mass[0][0], self.mass[0][1], 512, 512)
             cr.stroke()
 
-            cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
+            cr.set_source_rgba(0.0, 0.9, 0.9, 0.8)
             for rec in self.mass[1:]:
                 cr.rectangle(rec[0], rec[1], rec[2], rec[3])
                 cr.fill()
         else:
-            cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
+            cr.set_source_rgba(0.0, 0.9, 0.9, 0.8)
             cr.rectangle(self.mass[0][0], self.mass[0][1], 512, 512)
             cr.stroke()
 
-            cr.set_source_rgba(0.4, 0.6, 0.9, 0.5)
             for rec in self.mass[1:]:
                 cr.rectangle(rec[0], rec[1], rec[2], rec[3])
                 cr.fill()
