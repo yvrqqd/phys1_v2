@@ -65,18 +65,18 @@ class SettingsWindow:
     def on_mask_accept_button_released(self, *_):
         border = self.mass[0]
 
-        def is_masked(row, col):
+        def is_masked(col, row):  # inverted as ax
             for rec in self.mass[1:]:
                 if max(rec[0], rec[0] + rec[2]) >= border[0] + row >= min(rec[0], rec[0] + rec[2]) and \
                         max(rec[1], rec[1] + rec[3]) >= border[1] + col >= min(rec[1], rec[1] + rec[3]):
                     return 1
             return 0
 
-        mask = np.ones([512, 512], dtype="uint8")
+        mask = np.ones(512 * 512, dtype=np.uint8)
         for x in range(0, 512):
             for y in range(0, 512):
                 if is_masked(x, y):
-                    mask[x][y] = 0
+                    mask[x * 512 + y] = 0
 
         mask = np.packbits(mask, axis=0)
         with open("mask", "wb") as file:
@@ -85,6 +85,13 @@ class SettingsWindow:
 
         with open("mask_data.json", 'w') as file:
             json.dump(self.mass, file)
+
+        config = configparser.ConfigParser()
+        config.read("settings.ini")
+        config.set("area_coordinates", "coordinates", str(self.mass[0]))
+
+        with open("settings.ini", 'w') as configfile:
+            config.write(configfile)
 
     def on_toggled(self, obj, type_number):
         if type_number == 1 and self.toggle_btn_move_mask.get_active():

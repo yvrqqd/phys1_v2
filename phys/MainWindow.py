@@ -3,6 +3,7 @@ import time
 import threading
 import gi
 import configparser
+import numpy as np
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GdkPixbuf
@@ -35,46 +36,71 @@ class MainWindow(Gtk.Window):
     def open_video_opencv(self):
         global dimg, dimg2
 
-        LEFT_TOP_CORNER_X = 104
-        LEFT_TOP_CORNER_Y = 60
-        RIGHT_DOWN_CORNER_X = 636
-        RIGHT_DOWN_CORNER_Y = 572
+        def readconfig():
+            config = configparser.ConfigParser()
+            config.read("settings.ini")
+            return config["video_file"]["video_file_name"]
 
-        config = configparser.ConfigParser()
-        config.read("settings.ini")
+        def read_settings():
+            config = configparser.ConfigParser()
+            config.read("settings.ini")
+            x, y = [int(i) for i in config["area_coordinates"]["coordinates"][1:-1].split(',')]
+            return x, y, x + 512, y + 512
+
+        LEFT_TOP_CORNER_X, LEFT_TOP_CORNER_Y, RIGHT_DOWN_CORNER_X, RIGHT_DOWN_CORNER_Y = read_settings()
+        filename = readconfig()
+
+        mask = []
+        with open("mask", "rb") as file:
+            counter = 0
+            while counter < 512 * 64:
+                byte = file.read(1)
+                mask.append(np.uint8(ord(byte)))
+                counter += 1
+            mask = np.unpackbits(np.array(mask), axis=0).reshape(512, 512)
 
         img1 = GdkPixbuf.Pixbuf.new_from_file("start.png")
-
-        self.filename = config["video_file"]["video_file_name"]
-        cap = cv2.VideoCapture(self.filename)
-
+        cap = cv2.VideoCapture(filename)
         time_per_frame = 1 / int(cap.get(cv2.CAP_PROP_FPS))
         width = cap.get(3)  # float `width`
         height = cap.get(4)  # float `height`
         self.drawing_area.set_size_request(width, height)
         self.drawing_area2.set_size_request(width, height)
         ret, img = cap.read()
+        previous = img[LEFT_TOP_CORNER_Y:RIGHT_DOWN_CORNER_Y, LEFT_TOP_CORNER_X:RIGHT_DOWN_CORNER_X]
 
-        previous = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)[
-                   LEFT_TOP_CORNER_Y:RIGHT_DOWN_CORNER_Y,
-                   LEFT_TOP_CORNER_X:RIGHT_DOWN_CORNER_X
-                   ]
+        previous = cv2.bitwise_and(previous, previous, mask=mask)
+        previous = GdkPixbuf.Pixbuf.new_from_data(
+            previous.tostring(),
+            GdkPixbuf.Colorspace.RGB, False, 8,
+            previous.shape[1],
+            previous.shape[0],
+            previous.shape[2] * previous.shape[1], None, None
+        )
+
+        dimg1 = previous
+        dimg2 = previous
+        self.drawing_area2.queue_draw()
+        self.drawing_area.queue_draw()
+        time.sleep(100)
         previous = cv2.GaussianBlur(previous, (17, 13), 0)
-        h_bins = 50
-        s_bins = 60
-        histSize = [h_bins, s_bins]
+
+        h_bins = 512
+        s_bins = 0
+        histSize = [h_bins]
         h_ranges = [0, 180]
         s_ranges = [0, 256]
-        ranges = h_ranges + s_ranges
-        channels = [0, 1]
+        ranges = h_ranges
+        channels = [0]
         m1, m2, m3, m4 = [], [], [], []
         t = 1
         pr2 = previous
+        time.sleep(100)
         while cap.isOpened():
 
             ret, img = cap.read()
             if img is not None:
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 # print(base_base)
                 t += 1
                 mutex.acquire()
@@ -86,10 +112,10 @@ class MainWindow(Gtk.Window):
                 # t2 = time.time()
                 # img = cv2.blur(img,(5,5))
                 #
-                img = cv2.GaussianBlur(img, (11, 11), 0)
+                # img = cv2.GaussianBlur(img, (11, 11), 0)
                 tmp = img
                 img = cv2.absdiff(img, previous)
-                ret1, img = cv2.threshold(img, 10, 255, cv2.THRESH_BINARY)
+                # ret1, img = cv2.threshold(img, 10, 255, cv2.THRESH_BINARY)
 
                 dimg2 = GdkPixbuf.Pixbuf.new_from_data(
                     img.tobytes(),
@@ -98,13 +124,14 @@ class MainWindow(Gtk.Window):
                     img.shape[0],
                     img.shape[2] * img.shape[1], None, None
                 )
+
                 self.drawing_area2.queue_draw()
 
                 # print(t2-t1)
-                # hist_prev = cv2.calcHist([pr2], channels, None, histSize, ranges, accumulate=False)
+                hist_prev = cv2.calcHist([pr2], channels, None, histSize, ranges, accumulate=False)
                 # cv2.normalize(hist_prev, hist_prev, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
                 #
-                # hist_curr = cv2.calcHist([img], channels, None, histSize, ranges, accumulate=False)
+                hist_curr = cv2.calcHist([img], channels, None, histSize, ranges, accumulate=False)
                 # cv2.normalize(hist_curr, hist_curr, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
                 #
                 #
@@ -120,7 +147,8 @@ class MainWindow(Gtk.Window):
                 # # end = time.time()
                 # # print("2", end - start)
                 # # start = time.time()
-                # base_base = cv2.compareHist(hist_curr, hist_prev, 2)
+                base_base = cv2.compareHist(hist_curr, hist_prev, 2)
+                m1.append(base_base)
                 # m3.append(base_base)
                 # # end = time.time()
                 # # print("3", end - start)
@@ -159,10 +187,10 @@ class MainWindow(Gtk.Window):
                 self.drawing_area.queue_draw()
 
                 mutex.release()
-                time.sleep(time_per_frame)
+                time.sleep(time_per_frame / 100)
             else:
                 break
-        # print(m1)
+        print(m1)
         # print(m2)
         # print(m3)
         # print(m4)
