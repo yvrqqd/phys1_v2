@@ -197,7 +197,7 @@ class MainWindow(Gtk.Window):
 
     def video_open(self, *_):
         thread = threading.Thread(target=self.open_video_opencv)
-        thread.daemon = True
+        thread.daemon = False
         thread.start()
 
     def on_drawing_area_draw(self, widget, cr):

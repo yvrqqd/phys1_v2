@@ -1,15 +1,12 @@
-import time
-
 import cv2
 import gi
 import configparser
-import json, sys
+import json
 import numpy as np
-from functools import wraps
-from memory_profiler import profile
+import threading
 
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GObject, Gdk, GdkPixbuf, Gio
+from gi.repository import Gtk, Gdk, GdkPixbuf
 import cairo
 
 
@@ -31,6 +28,7 @@ class SettingsWindow:
         self.toggle_btn_set_0 = builder.get_object("toggle_btn_set0")
         self.toggle_btn_del_mask = builder.get_object("toggle_btn_del_mask")
         self.mask_accept_button = builder.get_object("mask_accept_button")
+        self.progress_bar = builder.get_object("mask_editor_progress_bar")
 
         self.mask_accept_button.connect("released", self.on_mask_accept_button_released)
         self.toggle_btn_move_mask.connect("toggled", self.on_toggled, 1)
@@ -63,6 +61,11 @@ class SettingsWindow:
             print("error while loading mask data: {}".format(e))
 
     def on_mask_accept_button_released(self, *_):
+        thread = threading.Thread(target=self.on_mask_accept_button_released_thread)
+        thread.daemon = False
+        thread.start()
+
+    def on_mask_accept_button_released_thread(self):
         border = self.mass[0]
 
         def is_masked(col, row):  # inverted as ax
@@ -78,13 +81,18 @@ class SettingsWindow:
                 if is_masked(x, y):
                     mask[x * 512 + y] = 0
 
+        self.progress_bar.set_fraction(0.15)
         mask = np.packbits(mask, axis=0)
+
         with open("mask", "wb") as file:
             for byte in mask:
                 file.write(byte)
 
+        self.progress_bar.set_fraction(0.8)
         with open("mask_data.json", 'w') as file:
             json.dump(self.mass, file)
+
+        self.progress_bar.set_fraction(0.9)
 
         config = configparser.ConfigParser()
         config.read("settings.ini")
@@ -92,6 +100,8 @@ class SettingsWindow:
 
         with open("settings.ini", 'w') as configfile:
             config.write(configfile)
+
+        self.progress_bar.set_fraction(1.0)
 
     def on_toggled(self, obj, type_number):
         if type_number == 1 and self.toggle_btn_move_mask.get_active():
