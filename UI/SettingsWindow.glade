@@ -249,7 +249,7 @@
           <object class="GtkProgressBar" id="mask_editor_progress_bar">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="text" translatable="yes">сохранение изменений в маске</property>
+            <property name="text" translatable="yes">прогресс сохранения изменений в маске</property>
             <property name="show_text">True</property>
           </object>
           <packing>

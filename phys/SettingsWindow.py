@@ -66,8 +66,6 @@ class SettingsWindow:
         thread.start()
 
     def on_mask_accept_button_released_thread(self):
-        border = self.mass[0]
-
         def is_masked(col, row):  # inverted as ax
             for rec in self.mass[1:]:
                 if max(rec[0], rec[0] + rec[2]) >= border[0] + row >= min(rec[0], rec[0] + rec[2]) and \
@@ -75,24 +73,31 @@ class SettingsWindow:
                     return 1
             return 0
 
+        self.progress_bar.set_fraction(0.0)
+
+        border = self.mass[0]
         mask = np.ones(512 * 512, dtype=np.uint8)
+        self.progress_bar.set_fraction(0.15)
+
         for x in range(0, 512):
             for y in range(0, 512):
                 if is_masked(x, y):
                     mask[x * 512 + y] = 0
+            self.progress_bar.set_fraction(0.35 + x/1024)
 
-        self.progress_bar.set_fraction(0.15)
         mask = np.packbits(mask, axis=0)
+
+        self.progress_bar.set_fraction(0.8)
 
         with open("mask", "wb") as file:
             for byte in mask:
                 file.write(byte)
 
-        self.progress_bar.set_fraction(0.8)
+        self.progress_bar.set_fraction(0.9)
         with open("mask_data.json", 'w') as file:
             json.dump(self.mass, file)
 
-        self.progress_bar.set_fraction(0.9)
+        self.progress_bar.set_fraction(0.95)
 
         config = configparser.ConfigParser()
         config.read("settings.ini")

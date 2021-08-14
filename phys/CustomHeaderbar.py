@@ -57,10 +57,10 @@ class CustomHeaderBar(Gtk.HeaderBar):
     @parity_checker
     def start_videostream(self, *args):
         if self.start_videostream.parity:
+            self.window.play_video = True
             self.window.video_open(self.window)
         else:
-            print("pause")
-
+            self.window.play_video = False
 
     def open_settings(self, *args):
         win = SettingsWindow.SettingsWindow()
