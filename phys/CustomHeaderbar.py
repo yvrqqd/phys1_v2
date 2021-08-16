@@ -1,13 +1,9 @@
-import cv2
-import time
-import threading
-import gi
-import configparser
 from functools import wraps
+import gi
 
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GObject, Gdk, GdkPixbuf, Gio
-from phys import InfoWindow, SettingsWindow, MainWindow
+from gi.repository import Gtk
+from phys import InfoWindow, SettingsWindow
 
 
 def parity_checker(function):
@@ -41,26 +37,25 @@ class CustomHeaderBar(Gtk.HeaderBar):
         self.button_box.pack_start(self.settings_button, False, False, 10)
 
         self.play_button = Gtk.ToolButton.new(play_icon, "play")
-        self.play_button.connect("clicked", self.start_videostream)
+        self.play_button.connect("clicked", self.start_video_stream)
         self.button_box.pack_start(self.play_button, False, False, 0)
 
         self.info_button = Gtk.Button(label="?")
         self.info_button.connect("clicked", self.open_info)
         self.button_box.pack_end(self.info_button, False, False, 0)
 
-
-
-    def open_info(self, *args):
+    @staticmethod
+    def open_info(*_):
         win = InfoWindow.InfoWindow()
 
-
     @parity_checker
-    def start_videostream(self, *args):
-        if self.start_videostream.parity:
+    def start_video_stream(self, *_):
+        if self.start_video_stream.parity:
             self.window.play_video = True
             self.window.video_open(self.window)
         else:
             self.window.play_video = False
 
-    def open_settings(self, *args):
+    @staticmethod
+    def open_settings(*_):
         win = SettingsWindow.SettingsWindow()
