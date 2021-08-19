@@ -19,30 +19,32 @@ class CustomHeaderBar(Gtk.HeaderBar):
     def __init__(self, win):
         Gtk.HeaderBar.__init__(self)
         self.window = win
+        builder = Gtk.Builder()
+        builder.add_from_file("UI/CustomHeaderbar.glade")
 
-        self.set_show_close_button(True)
-        self.props.title = "EXAMPLE"
-        self.connect("destroy", Gtk.main_quit)
-
-        self.window_box = win.get_child()
-        self.button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.pack_start(self.button_box)
-
-        icon_size = Gtk.IconSize.MENU
-        settings_icon = Gtk.Image.new_from_icon_name("system-run", icon_size)
-        play_icon = Gtk.Image.new_from_icon_name("media-playback-start", icon_size)
-
-        self.settings_button = Gtk.ToolButton.new(settings_icon, "settings")
-        self.settings_button.connect("clicked", self.open_settings)
-        self.button_box.pack_start(self.settings_button, False, False, 10)
-
-        self.play_button = Gtk.ToolButton.new(play_icon, "play")
-        self.play_button.connect("clicked", self.start_video_stream)
-        self.button_box.pack_start(self.play_button, False, False, 0)
-
-        self.info_button = Gtk.Button(label="?")
-        self.info_button.connect("clicked", self.open_info)
-        self.button_box.pack_end(self.info_button, False, False, 0)
+        # self.set_show_close_button(True)
+        # self.props.title = "EXAMPLE"
+        # self.connect("destroy", Gtk.main_quit)
+        #
+        # self.window_box = win.get_child()
+        # self.button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        # self.pack_start(self.button_box)
+        #
+        # icon_size = Gtk.IconSize.MENU
+        # settings_icon = Gtk.Image.new_from_icon_name("system-run", icon_size)
+        # play_icon = Gtk.Image.new_from_icon_name("media-playback-start", icon_size)
+        #
+        # self.settings_button = Gtk.ToolButton.new(settings_icon, "settings")
+        # self.settings_button.connect("clicked", self.open_settings)
+        # self.button_box.pack_start(self.settings_button, False, False, 10)
+        #
+        # self.play_button = Gtk.ToolButton.new(play_icon, "play")
+        # self.play_button.connect("clicked", self.start_video_stream)
+        # self.button_box.pack_start(self.play_button, False, False, 0)
+        #
+        # self.info_button = Gtk.Button(label="?")
+        # self.info_button.connect("clicked", self.open_info)
+        # self.button_box.pack_end(self.info_button, False, False, 0)
 
     @staticmethod
     def open_info(*_):
