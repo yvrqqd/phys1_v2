@@ -39,6 +39,12 @@ class MainWindow:
         analyse_toggle_button.connect("toggled", self.on_analyse_button_toggled)
         self.video_control_toggle_button.connect("toggled", self.on_video_control_button_toggled)
         self.scale.connect("value_changed", self.on_scale_value_changed)
+        self.drawing_area2.connect("button-press-event", self.on_drawing_area2_pressed)
+        self.drawing_area2.connect("button-release-event", self.on_drawing_area2_released)
+        self.drawing_area2.connect("motion-notify-event", self.on_drawing_area2_motion)
+        self.drawing_area2.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        self.drawing_area2.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK)
+        self.drawing_area2.add_events(Gdk.EventMask.BUTTON1_MOTION_MASK)
 
         self.drawing_area.set_size_request(720, 576)
         self.drawing_area2.set_size_request(720, 576)
@@ -53,6 +59,21 @@ class MainWindow:
         self.play_video = False
         self.analyse = False
         self.time_per_frame = 0.04
+        self.coords_of_mdi = [[0.0, 0.0], [0.0, 0.0]]
+
+    def on_drawing_area2_pressed(self, widget, event):
+        if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 1:
+            self.coords_of_mdi[0] = [event.x, event.y]
+            self.coords_of_mdi[1] = [event.x, event.y]
+
+    def on_drawing_area2_released(self, widget, event):
+        if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 1:
+            self.coords_of_mdi[1] = [event.x, event.y]
+
+    def on_drawing_area2_motion(self, widget, event):
+        self.coords_of_mdi[1] = [event.x, event.y]
+        print(2)
+        self.drawing_area2.queue_draw()
 
     def on_scale_value_changed(self, widget):
         self.drawing_area2.queue_draw()
@@ -210,3 +231,11 @@ class MainWindow:
                 cr.paint()
         finally:
             mutex_for_flash_images_array.release()
+        size_x = min(max(int(-self.coords_of_mdi[0][0]), int(self.coords_of_mdi[1][0] - self.coords_of_mdi[0][0])),
+                     720 - int(self.coords_of_mdi[0][0]))
+        size_y = min(max(int(-self.coords_of_mdi[0][1]), int(self.coords_of_mdi[1][1] - self.coords_of_mdi[0][1])),
+                     576 - int(self.coords_of_mdi[0][1]))
+        cr.set_source_rgba(0.0, 0.9, 0.9, 0.8)
+        cr.rectangle(int(self.coords_of_mdi[0][0]), int(self.coords_of_mdi[0][1]), size_x, size_y)
+        cr.stroke()
+        print(1)
