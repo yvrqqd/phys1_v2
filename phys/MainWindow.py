@@ -8,6 +8,8 @@ from matplotlib.backends.backend_gtk3agg import (
     FigureCanvasGTK3Agg as FigureCanvas)
 from matplotlib.figure import Figure
 
+
+from external import gui
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GdkPixbuf
 from phys import InfoWindow, SettingsWindow
@@ -72,7 +74,6 @@ class MainWindow:
 
     def on_drawing_area2_motion(self, widget, event):
         self.coords_of_mdi[1] = [event.x, event.y]
-        print(2)
         self.drawing_area2.queue_draw()
 
     def on_scale_value_changed(self, widget):
@@ -165,6 +166,9 @@ class MainWindow:
             tmp_img = cv2.bitwise_and(tmp_img, tmp_img, mask=back_sub_mask)
             _, thresh = cv2.threshold(tmp_img, 17, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
             contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+            # set offset param eq to ?
+            # coords of mdi[0] or left top corner
+            # ? change hierarh retention
             contours = sorted(contours, key=len)
             contours.reverse()
 
