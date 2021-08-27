@@ -1,31 +1,28 @@
 import os
 import threading
-import numpy as np
 import cv2
-from external import gui
-import gi
 import configparser
-from PIL import Image
+import gi
+import numpy as np
 
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf
+from gi.repository import Gtk, Gdk, GdkPixbuf, Gio
 
 mutex_for_frame = threading.Lock()
 FRAME_SOURCE = None
 FRAME = None
 
 
-class DatasetApp:
+class DatasetApp(Gtk.Application):
     def __init__(self):
+        super(DatasetApp, self).__init__(application_id="dataset_app", flags=Gio.ApplicationFlags.FLAGS_NONE)
         self.coords = [[.0, .0], [.0, .0]]
         self.cap = None
         self.left_top_corner_x, self.left_top_corner_y, self.right_down_corner_x, self.right_down_corner_y = 0, 0, 0, 0
         self.positive_count = 0
         self.negative_count = 0
 
-
-    @gui.GtkLocked
-    def create_gui(self):
+    def do_activate(self):
         builder = Gtk.Builder()
         builder.add_from_file("DatasetApp.glade")
 
@@ -39,7 +36,7 @@ class DatasetApp:
         close_button = builder.get_object("close_button")
         next_frame_button = builder.get_object("next_frame_button")
 
-        close_button.connect("clicked", self.close_all)
+        close_button.connect("clicked", main_window.destroy)
         start_button.connect("clicked", self.start_button_clicked)
         skip_button.connect("clicked", self.skip_button_clicked)
         next_frame_button.connect("clicked", self.next_frame_button_clicked)
@@ -50,12 +47,9 @@ class DatasetApp:
         self.drawing_area.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.drawing_area.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK)
         self.drawing_area.add_events(Gdk.EventMask.BUTTON1_MOTION_MASK)
+        self.add_window(self.main_window)
 
-        main_window.show_all()
-
-    def close_all(self, _):
-        # close opencv capture?
-        gui.GUIstop()
+        self.main_window.show_all()
 
     def read_frame(self):
         global FRAME_SOURCE, FRAME
@@ -77,11 +71,10 @@ class DatasetApp:
                         )
                         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                         FRAME_SOURCE = cv2.GaussianBlur(img, (11, 11), 0)
-                    gui.GuiIdleCall(self.drawing_area.queue_draw)
+                    self.drawing_area.queue_draw()
                 else:
                     print("no ret")
 
-    @gui.GtkLocked
     def start_button_clicked(self, _):
         def read_settings():
             config = configparser.ConfigParser()
@@ -91,7 +84,7 @@ class DatasetApp:
 
         filename = self.choose_file.get_filename()
         self.left_top_corner_x, self.left_top_corner_y, \
-        self.right_down_corner_x, self.right_down_corner_y = read_settings()
+            self.right_down_corner_x, self.right_down_corner_y = read_settings()
         if filename:
             self.cap = cv2.VideoCapture(filename)
             if not self.cap.isOpened():
@@ -100,21 +93,19 @@ class DatasetApp:
         else:
             print("no file")
 
-    @gui.GtkLocked
     def skip_button_clicked(self, _):
         self.choose_area_toggle.set_active(False)
         self.read_frame()
 
-    @gui.GtkLocked
     def next_frame_button_clicked(self, _):
         global FRAME_SOURCE
         with mutex_for_frame:
             if self.choose_area_toggle.get_active():
                 if cv2.imwrite(fr"images/positive/img{self.positive_count}.jpg", FRAME_SOURCE):
-                    x = int(min(self.coords[0][0],self.coords[1][0]))
+                    x = int(min(self.coords[0][0], self.coords[1][0]))
                     y = int(min(self.coords[0][1], self.coords[1][1]))
-                    size_x = int(abs(self.coords[0][0]-self.coords[1][0]))
-                    size_y = int(abs(self.coords[0][1]-self.coords[1][1]))
+                    size_x = int(abs(self.coords[0][0] - self.coords[1][0]))
+                    size_y = int(abs(self.coords[0][1] - self.coords[1][1]))
                     with open("images/info.dat", 'a') as file:
                         file.write(f"/positive/img{self.negative_count}.jpg 1 {x} {y} {size_x} {size_y}\n")
                     self.positive_count += 1
@@ -133,7 +124,6 @@ class DatasetApp:
         self.choose_area_toggle.set_active(False)
         self.read_frame()
 
-    @gui.GtkLocked
     def on_drawing_area_pressed(self, widget, event):
         if self.choose_area_toggle.get_active():
             if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 1:
@@ -142,20 +132,17 @@ class DatasetApp:
                 self.coord_label.set_text(f"{np.around(self.coords[0])}\n{np.around(self.coords[1])}")
                 self.drawing_area.queue_draw()
 
-    @gui.GtkLocked
     def on_drawing_area_released(self, widget, event):
         if self.choose_area_toggle.get_active():
             if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 1:
                 self.coords[1] = [event.x, event.y]
 
-    @gui.GtkLocked
     def on_drawing_area_motion(self, widget, event):
         if self.choose_area_toggle.get_active():
             self.coords[1] = [event.x, event.y]
             self.coord_label.set_text(f"{np.around(self.coords[0])}\n{np.around(self.coords[1])}")
             self.drawing_area.queue_draw()
 
-    @gui.GtkLocked
     def on_drawing_area_draw(self, _, cr):
         global FRAME
         with mutex_for_frame:
@@ -175,6 +162,4 @@ class DatasetApp:
 
 if __name__ == "__main__":
     window = DatasetApp()
-    window.create_gui()
-    gui.GuiCall(window)
-    gui.GUI()
+    window.run()
