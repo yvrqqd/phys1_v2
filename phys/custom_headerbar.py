@@ -3,7 +3,7 @@ import gi
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-from phys import InfoWindow, SettingsWindow
+from phys import info_window, settings_window
 
 
 def parity_checker(function):
@@ -48,7 +48,7 @@ class CustomHeaderBar(Gtk.HeaderBar):
 
     @staticmethod
     def open_info(*_):
-        win = InfoWindow.InfoWindow()
+        win = info_window.InfoWindow()
 
     @parity_checker
     def start_video_stream(self, *_):
@@ -60,4 +60,4 @@ class CustomHeaderBar(Gtk.HeaderBar):
 
     @staticmethod
     def open_settings(*_):
-        win = SettingsWindow.SettingsWindow()
+        win = settings_window.SettingsWindow()

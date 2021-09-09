@@ -10,6 +10,7 @@
   <object class="GtkWindow" id="settings_window">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Настройки</property>
+    <property name="modal">True</property>
     <property name="window_position">center-on-parent</property>
     <property name="default_width">1300</property>
     <property name="default_height">600</property>
@@ -184,10 +185,9 @@
             <property name="can_focus">False</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <signal name="button-press-event" handler="on_mask_editor_area_pressed" swapped="no"/>
-            <signal name="button-release-event" handler="on_mask_editor_area_released" swapped="no"/>
-            <signal name="draw" handler="on_mask_editor_area_draw" swapped="no"/>
-            <signal name="motion-notify-event" handler="on_mask_editor_motion_notify_event" swapped="no"/>
+            <signal name="button-press-event" handler="on_area_pressed" swapped="no"/>
+            <signal name="draw" handler="on_area_draw" swapped="no"/>
+            <signal name="motion-notify-event" handler="on_area_motion_notify_event" swapped="no"/>
           </object>
           <packing>
             <property name="left_attach">0</property>
@@ -197,8 +197,8 @@
           </packing>
         </child>
         <child>
-          <object class="GtkToggleButton" id="toggle_btn_set0">
-            <property name="label" translatable="yes">Добавление маски</property>
+          <object class="GtkToggleButton" id="toggle_btn_choose_box_to_analyse">
+            <property name="label" translatable="yes">Анализируемая область</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
@@ -209,20 +209,8 @@
           </packing>
         </child>
         <child>
-          <object class="GtkToggleButton" id="toggle_btn_del_mask">
-            <property name="label" translatable="yes">Удаление маски</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-          </object>
-          <packing>
-            <property name="left_attach">6</property>
-            <property name="top_attach">5</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkToggleButton" id="toggle_btn_move_mask">
-            <property name="label" translatable="yes">Перемещение области</property>
+          <object class="GtkToggleButton" id="toggle_btn_choose_view_box">
+            <property name="label" translatable="yes">Отображаемая область</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
@@ -233,30 +221,180 @@
           </packing>
         </child>
         <child>
-          <object class="GtkButton" id="mask_accept_button">
-            <property name="label" translatable="yes">Принять изменения в маске</property>
+          <object class="GtkBox">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
+            <property name="can_focus">False</property>
+            <property name="homogeneous">True</property>
+            <child>
+              <object class="GtkEntry">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="width_chars">4</property>
+                <property name="input_purpose">number</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="width_chars">4</property>
+                <property name="input_purpose">digits</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">:</property>
+                <property name="width_chars">1</property>
+                <property name="max_width_chars">1</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="width_chars">4</property>
+                <property name="input_purpose">number</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="width_chars">4</property>
+                <property name="input_purpose">number</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="left_attach">4</property>
             <property name="top_attach">6</property>
-            <property name="width">3</property>
           </packing>
         </child>
         <child>
-          <object class="GtkProgressBar" id="mask_editor_progress_bar">
+          <object class="GtkBox">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="text" translatable="yes">прогресс сохранения изменений в маске</property>
-            <property name="show_text">True</property>
+            <property name="homogeneous">True</property>
+            <child>
+              <object class="GtkEntry">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="width_chars">4</property>
+                <property name="input_purpose">number</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="width_chars">4</property>
+                <property name="input_purpose">digits</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">:</property>
+                <property name="width_chars">1</property>
+                <property name="max_width_chars">1</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="width_chars">4</property>
+                <property name="input_purpose">number</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="width_chars">4</property>
+                <property name="input_purpose">number</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="left_attach">5</property>
+            <property name="top_attach">6</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="area_accept_button">
+            <property name="label" translatable="yes">Принять изменение областей</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
           </object>
           <packing>
             <property name="left_attach">4</property>
             <property name="top_attach">7</property>
-            <property name="width">3</property>
+            <property name="width">2</property>
           </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+        <child>
+          <placeholder/>
         </child>
         <child>
           <placeholder/>

@@ -9,8 +9,8 @@
   </object>
   <object class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
-    <property name="default_width">720</property>
-    <property name="default_height">576</property>
+    <property name="default_width">632</property>
+    <property name="default_height">562</property>
     <child type="titlebar">
       <object class="GtkHeaderBar">
         <property name="visible">True</property>
@@ -43,6 +43,7 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="receives_default">True</property>
+            <property name="relief">none</property>
             <property name="always_show_image">True</property>
           </object>
           <packing>
@@ -97,7 +98,10 @@
                         <property name="adjustment">adjustment1</property>
                         <property name="lower_stepper_sensitivity">on</property>
                         <property name="upper_stepper_sensitivity">on</property>
+                        <property name="fill_level">100</property>
                         <property name="round_digits">0</property>
+                        <property name="digits">0</property>
+                        <property name="has_origin">False</property>
                         <property name="value_pos">left</property>
                       </object>
                     </child>
